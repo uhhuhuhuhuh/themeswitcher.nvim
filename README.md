@@ -99,7 +99,122 @@ ts.next()                   -- applies next colorscheme
 ts.prev()                   -- applies previous colorscheme
 ts.setup({})                -- setups this plugin
 ```
+#### How I used it
+``` lua
+local function onedark(style, bg)
+    return {
+        colorscheme = "onedark",
+        name = bg ~= "light" and "onedark-" .. style or "onedark-" .. bg,
+        bg = bg,
+        setup = function()
+            require("onedark").setup({ style = style })
+        end,
+    }
+end
+local function everforest(style, bg)
+    return {
+        colorscheme = "everforest",
+        name = "everforest-" .. style .. "-" .. bg,
+        bg = bg,
+        setup = function()
+            vim.g.everforest_background = style
+        end,
+    }
+end
+local function gruvbox(bg)
+    return {
+        colorscheme = "gruvbox",
+        name = bg ~= "light" and "gruvbox-dark" or "gruvbox-light",
+        bg = bg,
+    }
+end
+local function oxocarbon(bg)
+    return {
+        colorscheme = "oxocarbon",
+        name = bg ~= "light" and "oxocarbon-dark" or "oxocarbon-light",
+        bg = bg,
+    }
+end
 
+return {
+    {
+        "uhhuhuhuhuh/themeswitcher.nvim",
+        lazy = false,
+        opts = {
+            themes = {
+                "tokyonight-moon",
+                "tokyonight-storm",
+                "tokyonight-night",
+                "tokyonight-day",
+                "catppuccin-latte",
+                "catppuccin-frappe",
+                "catppuccin-macchiato",
+                "catppuccin-mocha",
+                "nightfox",
+                "dayfox",
+                "dawnfox",
+                "duskfox",
+                "nordfox",
+                "terafox",
+                "carbonfox",
+                "kanagawa-wave",
+                "kanagawa-dragon",
+                "kanagawa-lotus",
+                gruvbox("dark"),
+                gruvbox("light"),
+                onedark("dark", "dark"),
+                onedark("darker", "dark"),
+                onedark("cool", "dark"),
+                onedark("deep", "dark"),
+                onedark("warm", "dark"),
+                onedark("warmer", "dark"),
+                onedark("dark", "light"),
+                everforest("medium", "dark"),
+                everforest("hard", "dark"),
+                everforest("medium", "light"),
+                everforest("hard", "light"),
+                "rose-pine-main",
+                "rose-pine-moon",
+                "rose-pine-dawn",
+                "jellybeans",
+                "ayu-dark",
+                "ayu-mirage",
+                "ayu-light",
+                oxocarbon("dark"),
+                oxocarbon("light"),
+            },
+            fallback = "habamax",
+        },
+        keys = {
+            {
+                "<C-l>",
+                function()
+                    require("themeswitcher").next()
+                end,
+                desc = "Select next theme",
+            },
+            {
+                "<C-h>",
+                function()
+                    require("themeswitcher").prev()
+                end,
+                desc = "Select prev theme",
+            },
+        },
+    },
+    { "folke/tokyonight.nvim", priority = 1000 },
+    { "catppuccin/nvim", name = "catppuccin", priority = 1000 },
+    { "EdenEast/nightfox.nvim", priority = 1000 },
+    { "rebelot/kanagawa.nvim", priority = 1000 },
+    { "ellisonleao/gruvbox.nvim", priority = 1000 },
+    { "navarasu/onedark.nvim", priority = 1000 },
+    { "sainnhe/everforest", priority = 1000 },
+    { "rose-pine/neovim", name = "rose-pine", priority = 1000 },
+    { "nanotech/jellybeans.vim", priority = 1000 },
+    { "Shatur/neovim-ayu", priority = 1000 },
+    { "nyoom-engineering/oxocarbon.nvim", priority = 1000 },
+}
+```
 ### Why?
 I made a copy of my neovim config which I used to test plugins and colorscheme so I needed something to easily switch between colorschemes and their style.
 <sub><sup>I got bored too...</sup></sub>
