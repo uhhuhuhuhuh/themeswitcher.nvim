@@ -63,10 +63,10 @@ require("themeswitcher").setup({
 })
 
 vim.keymap.set("n", "<C-L>", function()
-    require("themeswitcher").next() // Selects next theme
+    require("themeswitcher").next() -- Selects next theme
 end, {desc = "Next theme"})
 vim.keymap.set("n", "<C-H>", function()
-    require("themeswitcher").prev() // Selects prev theme
+    require("themeswitcher").prev() -- Selects prev theme
 end, {desc = "Prev theme"})
 ```
 #### Clarification on the theme format
