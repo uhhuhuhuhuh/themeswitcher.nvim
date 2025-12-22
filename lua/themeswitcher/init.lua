@@ -1,8 +1,10 @@
 local currtheme = 1
-local themes = {}
 local config = {}
 local M = {}
-local fallback = nil
+local themes
+local fallback
+local fallback_setup
+local always_setup
 
 -- hidden
 local getname = function(theme)
@@ -41,6 +43,11 @@ local applytheme = function()
 	end
 	if themes[currtheme].setup ~= nil then
 		themes[currtheme].setup()
+	elseif fallback_setup ~= nil then
+		fallback_setup()
+	end
+	if always_setup ~= nil then
+		always_setup()
 	end
 	if themes[currtheme].bg ~= nil then
 		vim.o.background = themes[currtheme].bg
@@ -50,6 +57,9 @@ local applytheme = function()
 		vim.notify("Failed to load colorscheme: " .. getname(themes[currtheme]), vim.log.levels.ERROR)
 		error("Bad theme")
 		return
+	end
+	if themes[currtheme].post_coloring ~= nil then
+		themes[currtheme].post_coloring()
 	end
 	vim.fn.writefile({ getname(themes[currtheme]) }, vim.fn.stdpath("data") .. "/colorscheme")
 end
@@ -85,6 +95,9 @@ local isvalidtheme = function(theme)
 		return false
 	end
 	if theme.bg ~= nil and theme.bg ~= "dark" and theme.bg ~= "light" then
+		return false
+	end
+	if type(theme.post_coloring) ~= "function" and type(theme.post_coloring) ~= "nil" then
 		return false
 	end
 
@@ -187,6 +200,8 @@ function M.setup(opts)
 		})
 	end
 	fallback = config.fallback
+	fallback_setup = config.fallback_setup
+	always_setup = config.always_setup
 end
 
 return M
