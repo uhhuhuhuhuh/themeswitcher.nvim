@@ -38,7 +38,7 @@ require("themeswitcher").setup({
         "colorscheme1",
         "colorscheme2",
         {
-            "colorscheme-which-uses-background",
+            colorscheme = "colorscheme-which-uses-background",
             bg = "dark", -- no one likes light themed colorschemes
         },
         -- soft style for mycolors
