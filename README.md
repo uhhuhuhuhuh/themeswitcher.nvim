@@ -58,10 +58,12 @@ require("themeswitcher").setup({
             end,
         },
     },
-    make_Color_cmd = true, -- makes a custom command "Color" which uses the themes table for the aviable options
-    fallback = "habamax",  -- fallback colorscheme, can only be a string, not a table
-    fallback_setup = nil,  -- fallback setup if there is none provided for a theme
-    always_setup = nil,    -- setup function called for every theme (called after setup or fallback_setup)
+    make_Color_cmd = true,  -- makes a custom command "Color" which uses the themes table for the aviable options
+    fallback = "habamax",   -- fallback theme, same syntax as themes' items'
+    fallback_setup = nil,   -- fallback setup if there is none provided for a theme
+    always_setup = nil,     -- setup function called for every theme, called after setup
+    fallback_closure = nil, -- fallback closure if there is none provided for a theme
+    always_closure = nil,   -- closure function called for every theme (called after coloring)
 })
 
 vim.keymap.set("n", "<C-L>", function()
@@ -75,7 +77,7 @@ end, {desc = "Prev theme"})
 ##### String Format
 ``` lua
 -- String provided is used as the name and colorscheme
-"mycolorscheme"
+"mycolors"
 ```
 ##### Table Format
 ``` lua
@@ -90,7 +92,7 @@ end, {desc = "Prev theme"})
         require("mycolors").setup({ style = "soft" })
     end,
     -- Optional, used after coloring of the theme
-    post_coloring = function()
+    closure = function()
         -- set transparent bg after
         vim.api.nvim_set_hl(0, "Normal", { bg = "None" })
         vim.api.nvim_set_hl(0, "NormalFloat", { bg = "None" })

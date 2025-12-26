@@ -1,111 +1,71 @@
 local currtheme = 1
 local config = {}
 local M = {}
-local themes
-local fallback
-local fallback_setup
-local always_setup
 
 -- hidden
-local getname = function(theme)
-	if theme.name ~= nil then
-		return theme.name
-	end
-	if theme.colorscheme ~= nil then
-		return theme.colorscheme
-	end
-
-	-- not a table must be a string
-	return theme
-end
 local notify = function()
-	if themes[currtheme] == nil then
+	if config.themes[currtheme] == nil then
 		return
 	end
-	vim.notify("Switched to colorscheme, " .. getname(themes[currtheme]))
+	vim.notify("Switched to colorscheme, " .. config.themes[currtheme].name)
 end
 
 local applytheme = function()
 	local colorscheme
-	if themes[currtheme] == nil then
+	if config.themes[currtheme] == nil then
 		return
 	end
-	if themes[currtheme].colorscheme == nil then
-		if type(themes[currtheme]) == "string" then
-			colorscheme = themes[currtheme]
-		else
-			vim.notify("Invalid theme provided: " .. themes[currtheme], vim.log.levels.ERROR)
-			error("Bad theme")
-			return
-		end
+	if config.themes[currtheme].colorscheme == nil then
+		vim.notify("Invalid theme provided: " .. config.themes[currtheme], vim.log.levels.ERROR)
+		error("Bad theme")
 	else
-		colorscheme = themes[currtheme].colorscheme
+		colorscheme = config.themes[currtheme].colorscheme
 	end
-	if themes[currtheme].setup ~= nil then
-		themes[currtheme].setup()
-	elseif fallback_setup ~= nil then
-		fallback_setup()
+	if config.themes[currtheme].setup ~= nil then
+		config.themes[currtheme].setup()
+	elseif config.fallback_setup ~= nil then
+		config.fallback_setup()
 	end
-	if always_setup ~= nil then
-		always_setup()
+	if config.always_setup ~= nil then
+		config.always_setup()
 	end
-	if themes[currtheme].bg ~= nil then
-		vim.o.background = themes[currtheme].bg
+	if config.themes[currtheme].bg ~= nil then
+		vim.o.background = config.themes[currtheme].bg
 	end
-	local ok = pcall(vim.cmd.colorscheme, colorscheme)
-	if not ok then
-		vim.notify("Failed to load colorscheme: " .. getname(themes[currtheme]), vim.log.levels.ERROR)
+	if not pcall(vim.cmd.colorscheme, colorscheme) then
+		if config.themes[currtheme].name == nil then
+			vim.notify(tostring(currtheme))
+		else
+			vim.notify("Failed to load colorscheme: " .. config.themes[currtheme].name, vim.log.levels.ERROR)
+		end
 		error("Bad theme")
 		return
 	end
-	if themes[currtheme].post_coloring ~= nil then
-		themes[currtheme].post_coloring()
+	if config.themes[currtheme].closure ~= nil then
+		config.themes[currtheme].closure()
+	elseif config.fallback_closure ~= nil then
+		config.fallback_closure()
 	end
-	vim.fn.writefile({ getname(themes[currtheme]) }, vim.fn.stdpath("data") .. "/colorscheme")
+	if config.themes[currtheme].always_closure ~= nil then
+		config.always_closure()
+	end
+	vim.fn.writefile({ config.themes[currtheme].name }, vim.fn.stdpath("data") .. "/colorscheme")
 end
-local apply = function()
+local applyorfallback = function()
 	if pcall(applytheme) then
 		notify()
 		return
 	end
-	if fallback == nil then
+	if config.fallback == nil then
 		return
 	end
-	if not pcall(vim.cmd.colorscheme, fallback) then
-		vim.notify("Failed to load fallback: " .. fallback, vim.log.levels.ERROR)
+	if not pcall(vim.cmd.colorscheme, config.fallback.colorscheme) then
+		vim.notify("Failed to load fallback, " .. config.fallback.name, vim.log.levels.ERROR)
 	end
-end
-local isvalidtheme = function(theme)
-	if theme == nil then
-		return false
-	end
-	if type(theme) == "string" then
-		return true
-	end
-	if type(theme) ~= "table" then
-		return false
-	end
-	if type(theme.colorscheme) ~= "string" then
-		return false
-	end
-	if theme.name ~= nil and type(theme.name) ~= "string" then
-		return false
-	end
-	if theme.setup ~= nil and type(theme.setup) ~= "function" then
-		return false
-	end
-	if theme.bg ~= nil and theme.bg ~= "dark" and theme.bg ~= "light" then
-		return false
-	end
-	if type(theme.post_coloring) ~= "function" and type(theme.post_coloring) ~= "nil" then
-		return false
-	end
-
-	return true
 end
 local findtheme = function(theme)
-	for i, t in ipairs(themes) do
-		if getname(t) == theme then
+	for i, t in ipairs(config.themes) do
+		if t.name == theme then
 			return i
 		end
 	end
@@ -114,10 +74,15 @@ end
 -- public
 
 function M.set_theme(name)
-	for i, theme in ipairs(themes) do
-		if name == getname(theme) then
+	local old = currtheme
+	for i, theme in ipairs(config.themes) do
+		if name == theme.name then
 			currtheme = i
-			apply()
+			if not pcall(applytheme) then
+				currtheme = old
+			else
+				notify()
+			end
 			return
 		end
 	end
@@ -125,65 +90,62 @@ function M.set_theme(name)
 end
 
 function M.get_themes()
-	return themes
+	return config.themes
 end
 
 function M.get_names()
 	local names = {}
-	for _, theme in ipairs(themes) do
-		table.insert(names, getname(theme))
+	for _, theme in ipairs(config.themes) do
+		table.insert(names, theme.name)
 	end
 	return names
 end
 
 function M.next()
-	if currtheme == #themes then
+	local old = currtheme
+	if currtheme == #config.themes then
 		currtheme = 1
 	else
 		currtheme = currtheme + 1
 	end
-	apply()
+	if not pcall(applytheme) then
+		currtheme = old
+	else
+		notify()
+	end
 end
 
 function M.prev()
+	local old = currtheme
 	if currtheme == 1 then
-		currtheme = #themes
+		currtheme = #config.themes
 	else
 		currtheme = currtheme - 1
 	end
-	apply()
+	if not pcall(applytheme) then
+		currtheme = old
+	else
+		notify()
+	end
 end
 
 function M.setup(opts)
-	config = vim.tbl_deep_extend("force", require("themeswitcher.defaults"), opts or {})
-	if type(config.themes) == "table" then
-		themes = config.themes
-		-- check validity of themesarg
-		local errmsg = ""
-		for i, theme in ipairs(themes) do
-			if isvalidtheme(theme) == false then
-				errmsg = errmsg .. "Invalid theme at idx: " .. tostring(i) .. ": " .. tostring(theme) .. "\n"
+	config = require("themeswitcher.config").parse_config(opts)
+	config = require("themeswitcher.config").complete_themes_from_config(config)
+
+	local savefilename = vim.fn.stdpath("data") .. "/colorscheme"
+	if vim.fn.filereadable(savefilename) == 1 then
+		local savefile = vim.fn.readfile(savefilename)
+
+		if savefile and #savefile > 0 then
+			local findresults = findtheme(savefile[1])
+
+			if findresults ~= nil then
+				currtheme = findresults
 			end
 		end
-		if errmsg ~= "" then
-			vim.notify(errmsg, "error")
-			return
-		end
-		-- load saved colorscheme
-		local savefilename = vim.fn.stdpath("data") .. "/colorscheme"
-		if vim.fn.filereadable(savefilename) == 1 then
-			local savefile = vim.fn.readfile(savefilename)
-
-			if savefile and #savefile > 0 then
-				local findresults = findtheme(savefile[1])
-
-				if findresults ~= nil then
-					currtheme = findresults
-				end
-			end
-		end
-		applytheme()
 	end
+	applyorfallback()
 	if config.make_Color_cmd == true then
 		vim.api.nvim_create_user_command("Color", function(opts)
 			M.set_theme(opts.args)
@@ -192,16 +154,13 @@ function M.setup(opts)
 			desc = "Select colorscheme from colorschemes table",
 			complete = function()
 				local items = {}
-				for _, theme in ipairs(themes) do
-					table.insert(items, getname(theme))
+				for _, theme in ipairs(config.themes) do
+					table.insert(items, theme.name)
 				end
 				return items
 			end,
 		})
 	end
-	fallback = config.fallback
-	fallback_setup = config.fallback_setup
-	always_setup = config.always_setup
 end
 
 return M
