@@ -13,7 +13,7 @@ end
 local applytheme = function()
 	local colorscheme
 	if config.themes[currtheme] == nil then
-		return
+		error("Bad theme")
 	end
 	if config.themes[currtheme].colorscheme == nil then
 		vim.notify("Invalid theme provided: " .. config.themes[currtheme], vim.log.levels.ERROR)
@@ -52,6 +52,7 @@ local applyorfallback = function()
 		notify()
 		return
 	end
+	currtheme = 0
 	if config.fallback == nil then
 		return
 	end
@@ -134,11 +135,7 @@ function M.setup(opts)
 		local savefile = vim.fn.readfile(savefilename)
 
 		if savefile and #savefile > 0 then
-			local findresults = findtheme(savefile[1])
-
-			if findresults ~= nil then
-				currtheme = findresults
-			end
+			currtheme = findtheme(savefile[1])
 		end
 	end
 	applyorfallback()
