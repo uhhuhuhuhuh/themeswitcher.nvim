@@ -82,9 +82,9 @@ end, {desc = "Prev theme"})
 ##### Table Format
 ``` lua
 {
-    colorscheme = "mycolors", -- REQUIRED, used as the argument for vim.cmd.color()
-    name = "mycolors-soft", -- Used when referring to this theme, fallsback to colorscheme
-    bg = "dark", -- Used when assigning vim.o.background, MUST be either "dark" or "light"
+    colorscheme = "mycolors", -- REQUIRED, the argument for vim.cmd.color()
+    name = "mycolors-soft",   -- the string used to refer to this theme
+    bg = "dark",              -- vim.o.background's value, either "dark" or "light"
 
     -- Used to setup the colorscheme, called before coloring
     setup = function()
@@ -104,7 +104,7 @@ end, {desc = "Prev theme"})
 local ts = require("themeswitcher")
 
 ts.set_theme("mythemename") -- sets a theme based off a name
-ts.set_theme_idx(1)       -- sets a theme based off an idx
+ts.set_theme_idx(1)         -- sets a theme based off an idx
 ts.get_themes()             -- returns the themes table
 ts.get_names()              -- returns the names of the items in the themes table
 ts.next()                   -- applies next colorscheme
@@ -112,5 +112,5 @@ ts.prev()                   -- applies previous colorscheme
 ts.setup({})                -- setups this plugin
 ```
 ### Why?
-I made a copy of my neovim config which I used to test plugins and colorscheme so I needed something to easily switch between colorschemes and their style.
+I made a copy of my neovim config which I used to test plugins and colorschemes so I needed something to easily switch between colorschemes and their styles.
 <sub><sup>I got bored too...</sup></sub>
