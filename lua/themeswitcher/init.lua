@@ -47,19 +47,6 @@ local applytheme = function()
 	end
 	vim.fn.writefile({ config.themes[currtheme].name }, vim.fn.stdpath("data") .. "/colorscheme")
 end
-local applyorfallback = function()
-	if pcall(applytheme) then
-		notify()
-		return
-	end
-	currtheme = 0
-	if config.fallback == nil then
-		return
-	end
-	if not pcall(vim.cmd.colorscheme, config.fallback.colorscheme) then
-		vim.notify("Failed to load fallback, " .. config.fallback.name, vim.log.levels.ERROR)
-	end
-end
 local findtheme = function(theme)
 	for i, t in ipairs(config.themes) do
 		if t.name == theme then
@@ -127,8 +114,9 @@ function M.prev()
 end
 
 function M.setup(opts)
-	config = require("themeswitcher.config").parse_config(opts)
-	config = require("themeswitcher.config").complete_themes_from_config(config)
+	local conf_module = require("themeswitcher.config")
+	config = require("themeswitcher.validator").parse_config(opts, conf_module.config_guide)
+	config = conf_module.complete_themes_from_config(config)
 
 	local savefilename = vim.fn.stdpath("data") .. "/colorscheme"
 	if vim.fn.filereadable(savefilename) == 1 then
@@ -138,7 +126,15 @@ function M.setup(opts)
 			currtheme = findtheme(savefile[1])
 		end
 	end
-	applyorfallback()
+	if not pcall(applytheme) then
+		currtheme = 0
+		if config.fallback == nil then
+			return
+		end
+		if not pcall(vim.cmd.colorscheme, config.fallback.colorscheme) then
+			vim.notify("Failed to load fallback, " .. config.fallback.name, vim.log.levels.ERROR)
+		end
+	end
 	if config.make_Color_cmd == true then
 		vim.api.nvim_create_user_command("Color", function(opts)
 			M.set_theme(opts.args)
