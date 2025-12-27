@@ -83,15 +83,15 @@ end, {desc = "Prev theme"})
 ``` lua
 {
     colorscheme = "mycolors", -- REQUIRED, used as the argument for vim.cmd.color()
-    name = "mycolors-soft", -- Optional, used when referring to this theme, fallsback to colorscheme
-    bg = "dark", -- Optional, used when assigning vim.o.background, MUST be either "dark" or "light"
+    name = "mycolors-soft", -- Used when referring to this theme, fallsback to colorscheme
+    bg = "dark", -- Used when assigning vim.o.background, MUST be either "dark" or "light"
 
-    -- Optional, used to setup the colorscheme, called before coloring
+    -- Used to setup the colorscheme, called before coloring
     setup = function()
         -- set style beforehand
         require("mycolors").setup({ style = "soft" })
     end,
-    -- Optional, used after coloring of the theme
+    -- Used after coloring of the theme
     closure = function()
         -- set transparent bg after
         vim.api.nvim_set_hl(0, "Normal", { bg = "None" })
@@ -104,6 +104,7 @@ end, {desc = "Prev theme"})
 local ts = require("themeswitcher")
 
 ts.set_theme("mythemename") -- sets a theme based off a name
+ts.set_theme_idx(1)       -- sets a theme based off an idx
 ts.get_themes()             -- returns the themes table
 ts.get_names()              -- returns the names of the items in the themes table
 ts.next()                   -- applies next colorscheme
