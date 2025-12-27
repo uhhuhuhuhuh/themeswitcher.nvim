@@ -1,3 +1,5 @@
+local validator = require("themeswitcher.validator")
+
 local theme_guide = {
 	colorscheme = { required = true, types = { "string" } },
 	name = { types = { "string" } },
@@ -5,9 +7,9 @@ local theme_guide = {
 	setup = { types = { "function" } },
 	closure = { types = { "function" } },
 }
-
+local config = {}
 local M = {
-	config_guide = {
+	guide = {
 		themes = {
 			default = {},
 			types = { "table" },
@@ -43,13 +45,20 @@ local complete_theme = function(theme)
 	return new
 end
 
-function M.complete_themes_from_config(config)
-	local new = config
-	for i, x in ipairs(new.themes) do
-		new.themes[i] = complete_theme(x)
+local complete_themes = function()
+	for i, x in ipairs(config.themes) do
+		config.themes[i] = complete_theme(x)
 	end
-	new.fallback = complete_theme(new.fallback)
-	return new
+	config.fallback = complete_theme(config.fallback)
+end
+
+function M.set(opts)
+	config = validator.parse_config(opts, M.guide)
+	complete_themes()
+end
+
+function M.get()
+	return config
 end
 
 return M
