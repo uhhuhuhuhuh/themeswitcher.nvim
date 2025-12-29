@@ -1,9 +1,15 @@
+-- The index used by applytheme
 local currtheme = 1
+-- Used for previewing themes, stores the applied theme but not the theme which is being previewed
+-- If previewing is not occurring then it's value is nil
+local appliedtheme = nil
 local config = require("themeswitcher.config")
 local persistence = require("themeswitcher.persistence")
+local window = require("themeswitcher.window")
 local M = {}
 
 -- hidden
+
 local notify = function()
 	if config.get().themes[currtheme] == nil then
 		return
@@ -11,7 +17,8 @@ local notify = function()
 	vim.notify("Switched to colorscheme, " .. config.get().themes[currtheme].name)
 end
 
-local applytheme = function()
+local applytheme = function(save)
+	save = save or true
 	local colorscheme
 	if config.get().themes[currtheme] == nil then
 		error("Bad theme")
@@ -46,7 +53,9 @@ local applytheme = function()
 	if config.get().themes[currtheme].always_closure ~= nil then
 		config.get().always_closure()
 	end
-	persistence.write(config.get().themes[currtheme].name)
+	if save == true then
+		persistence.write(config.get().themes[currtheme].name)
+	end
 end
 local findtheme = function(theme)
 	for i, t in ipairs(config.get().themes) do
@@ -70,11 +79,82 @@ local loadpersist = function()
 		end
 	end
 end
+local updatewindow
+local updatewindowcursor = function()
+	updatewindow(vim.fn.line("."))
+end
+updatewindow = function(position, updatecursor)
+	updatecursor = updatecursor or false
+	vim.api.nvim_set_option_value("modifiable", true, { buf = window.buf() })
+
+	if #config.get().themes == 0 then
+		vim.api.nvim_buf_set_lines(window.buf(), 1, -1, false, { "  No Themes Loaded..." })
+		vim.api.nvim_set_option_value("modifiable", false, { buf = window.buf() })
+		return
+	end
+
+	-- Is different from M.get_names
+	local names = {}
+	for i, t in ipairs(config.get().themes) do
+		local prefix = "  "
+		if i == appliedtheme then
+			prefix = "> "
+		end
+		table.insert(names, prefix .. t.name)
+	end
+
+	vim.api.nvim_buf_set_lines(window.buf(), 1, -1, false, names)
+	if updatecursor == true then
+		vim.api.nvim_win_set_cursor(window.win(), { position, 0 })
+	end
+	vim.api.nvim_set_option_value("modifiable", false, { buf = window.buf() })
+
+	if position < 2 then
+		return
+	end
+	currtheme = position - 1
+	if config.get().Themes_cmd.live_preview == true then
+		applytheme(false)
+	end
+end
+local closewindow = function()
+	window.close()
+	currtheme = appliedtheme
+	applytheme()
+	appliedtheme = nil
+end
+local closewindowapply = function()
+	window.close()
+	applytheme()
+	appliedtheme = nil
+end
+local openwindow = function()
+	window.open(updatewindowcursor)
+	appliedtheme = currtheme
+	updatewindow(appliedtheme + 1, true)
+	local mappings = {
+		q = closewindow,
+		["<Esc>"] = closewindow,
+		["<Cr>"] = closewindowapply,
+	}
+
+	for k, v in pairs(mappings) do
+		vim.keymap.set("n", k, v, {
+			buffer = window.buf(),
+			noremap = true,
+			silent = true,
+		})
+	end
+end
 
 function M.set_theme(name)
 	local old = currtheme
 	for i, theme in ipairs(config.get().themes) do
 		if name == theme.name then
+			if appliedtheme ~= nil then
+				updatewindow(i + 1, true)
+				return
+			end
 			currtheme = i
 			if not pcall(applytheme) then
 				currtheme = old
@@ -92,6 +172,10 @@ function M.set_theme_idx(idx)
 		vim.notify("Failed to find colorscheme from index, " .. idx, vim.log.levels.ERROR)
 	end
 
+	if appliedtheme ~= nil then
+		updatewindow(idx + 1, true)
+		return
+	end
 	local old = currtheme
 	currtheme = idx
 	if not pcall(applytheme) then
@@ -114,31 +198,43 @@ function M.get_names()
 end
 
 function M.next()
-	local old = currtheme
-	if currtheme == #config.get().themes then
-		currtheme = 1
+	local new = currtheme
+	if new == #config.get().themes then
+		new = 1
 	else
-		currtheme = currtheme + 1
+		new = new + 1
 	end
+	if appliedtheme ~= nil then
+		updatewindow(new + 1, true)
+		return
+	end
+	local old = currtheme
+	currtheme = new
 	if not pcall(applytheme) then
 		currtheme = old
-	else
-		notify()
+		return
 	end
+	notify()
 end
 
 function M.prev()
-	local old = currtheme
-	if currtheme == 1 then
-		currtheme = #config.get().themes
+	local new = currtheme
+	if new == 1 then
+		new = #config.get().themes
 	else
-		currtheme = currtheme - 1
+		new = new - 1
 	end
+	if appliedtheme ~= nil then
+		updatewindow(new + 1, true)
+		return
+	end
+	local old = currtheme
+	currtheme = new
 	if not pcall(applytheme) then
 		currtheme = old
-	else
-		notify()
+		return
 	end
+	notify()
 end
 
 function M.setup(opts)
@@ -154,6 +250,9 @@ function M.setup(opts)
 				return M.get_names()
 			end,
 		})
+	end
+	if config.get().Themes_cmd.make == true then
+		vim.api.nvim_create_user_command("Themes", openwindow, {})
 	end
 end
 

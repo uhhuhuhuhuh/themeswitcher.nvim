@@ -19,6 +19,13 @@ local M = {
 			},
 		},
 		make_Color_cmd = { default = true, types = { "boolean" } },
+		Themes_cmd = {
+			default_dict = true,
+			dict_valid = {
+				make = { default = true, types = { "boolean" } },
+				live_preview = { default = true, types = { "boolean" } },
+			},
+		},
 		fallback = {
 			default = "habamax",
 			types = { "string", "table" },
@@ -33,12 +40,12 @@ local M = {
 
 local complete_theme = function(theme)
 	if type(theme) == "string" then
-		return { colorscheme = theme, name = theme, bg = nil, setup = nil, closure = nil }
+		return { colorscheme = theme, name = theme }
 	end
 	local new = theme
 	if type(theme) == "table" then
 		if theme.name == nil then
-			new["name"] = theme.colorscheme
+			new.name = theme.colorscheme
 			return new
 		end
 	end
@@ -60,5 +67,10 @@ end
 function M.get()
 	return config
 end
+
+local opts = {
+	some_opt = "blah",
+	another_opt = true,
+}
 
 return M

@@ -31,6 +31,12 @@ use {
 ```
 
 ### How to use
+#### Quick Explanation
+Use the "Themes" command to get a nice UI to view and pick your themes, or use the "Color" command to directly set a theme
+based off a name. If you want to, you can bind keys to next() and prev() to be able to quickly change. When setting up the
+plugin use the "themes" table to add all your colorschemes, each "theme" is either a string or table, where you can specify
+several options: colorscheme, the arguement for vim.cmd.color; name, the name of the theme; bg, the value for
+vim.o.background; setup, a function called before coloring; and closure, a function called after coloring.
 #### Example
 ``` lua
 require("themeswitcher").setup({
@@ -58,7 +64,11 @@ require("themeswitcher").setup({
             end,
         },
     },
-    make_Color_cmd = true,  -- makes a custom command "Color" which uses the themes table for the aviable options
+    make_Color_cmd = true,  -- make a command, "Color" which uses the themes table
+    Themes_cmd = {          -- configuration around command, "Themes"
+        make = true,            -- make the command
+        live_preview = true,    -- preview the theme under the cursor
+    },
     fallback = "habamax",   -- fallback theme, same syntax as themes' items'
     fallback_setup = nil,   -- fallback setup if there is none provided for a theme
     always_setup = nil,     -- setup function called for every theme, called after setup
@@ -112,5 +122,11 @@ ts.prev()                   -- applies previous colorscheme
 ts.setup({})                -- setups this plugin
 ```
 ### Why?
-I made a copy of my neovim config which I used to test plugins and colorschemes so I needed something to easily switch between colorschemes and their styles.
+I made a copy of my neovim config which I used to test plugins and colorschemes so I needed something to easily switch
+between colorschemes and their styles.
 <sub><sup>I got bored too...</sup></sub>
+
+### Things to note
+- I used [themery.nvim](https://github.com/zaldih/themery.nvim) to understand how windows and buffers worked in vim, also my
+  plugin is pretty similiar to theirs (not that there are many ways to make a colorscheme manager)
+- To test vibe coding I used deepseek to make a highly general and complete [configuration validator](https://github.com/uhhuhuhuhuh/themeswitcher.nvim/blob/main/lua/themeswitcher/validator.lua)

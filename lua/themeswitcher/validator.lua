@@ -1,3 +1,4 @@
+-- the result of some vibe coding with deepseek
 local M = {}
 
 local validate_type = function(x, types)
@@ -49,6 +50,28 @@ local function validate_values(value, values, full_path, errors)
 		)
 	end
 	return valid
+end
+
+local function create_default_dict(dict_valid, full_path, validate_config_func)
+	-- Create default values for all keys in dict_valid
+	local default_dict = {}
+
+	for key, rule in pairs(dict_valid) do
+		local key_path = full_path .. "." .. key
+
+		if rule.default ~= nil then
+			-- If the rule itself has a default value, use it
+			default_dict[key] = rule.default
+		elseif rule.dict_valid ~= nil and rule.default_dict then
+			-- Recursively create default dict for nested dictionaries
+			local nested_default = create_default_dict(rule.dict_valid, key_path, validate_config_func)
+			if next(nested_default) ~= nil then
+				default_dict[key] = nested_default
+			end
+		end
+	end
+
+	return default_dict
 end
 
 local function validate_array_item(item, i, rule, full_path, errors, validate_config_func)
@@ -162,6 +185,20 @@ local function validate_dict(value, rule, full_path, errors, validate_config_fun
 end
 
 local function validate_field(key, rule, value, full_path, errors, cleaned, validate_config_func)
+	-- Check if we should create a default dictionary
+	if value == nil and rule.default_dict and rule.dict_valid then
+		local default_dict = create_default_dict(rule.dict_valid, full_path, validate_config_func)
+		if next(default_dict) ~= nil then
+			-- Validate the default dictionary to ensure it's properly formed
+			local sub_result = validate_config_func(default_dict, rule.dict_valid, full_path)
+			for _, err in ipairs(sub_result.errors) do
+				table.insert(errors, err)
+			end
+			cleaned[key] = sub_result.cleaned
+			return true
+		end
+	end
+
 	if value == nil then
 		if rule.required == true then
 			table.insert(errors, "Required field missing: " .. full_path)
@@ -215,14 +252,13 @@ local function validate_field(key, rule, value, full_path, errors, cleaned, vali
 	return true
 end
 
-local function validate_config(user_config, guide, path)
+local function validate_config(config, guide, path)
 	local errors = {}
 	local cleaned = {}
-	path = path or ""
 
 	for key, rule in pairs(guide) do
 		local full_path = path == "" and key or path .. "." .. key
-		local value = user_config[key]
+		local value = config[key]
 
 		validate_field(key, rule, value, full_path, errors, cleaned, validate_config)
 	end
@@ -230,8 +266,8 @@ local function validate_config(user_config, guide, path)
 	return { cleaned = cleaned, errors = errors }
 end
 
-function M.parse_config(user_config, guide)
-	local result = validate_config(user_config or {}, guide)
+function M.parse_config(config, guide)
+	local result = validate_config(config or {}, guide, "")
 
 	if #result.errors > 0 then
 		error("Config validation failed:\n" .. table.concat(result.errors, "\n"))
