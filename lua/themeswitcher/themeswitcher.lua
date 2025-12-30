@@ -40,7 +40,7 @@ local applytheme = function(save)
 	if config.get().themes[currtheme].bg ~= nil then
 		vim.o.background = config.get().themes[currtheme].bg
 	end
-	if not pcall(vim.cmd.colorscheme, colorscheme) then
+	if not pcall(vim.cmd.color, colorscheme) then
 		vim.notify("Failed to load colorscheme: " .. config.get().themes[currtheme].name, vim.log.levels.ERROR)
 		error("Bad theme")
 		return

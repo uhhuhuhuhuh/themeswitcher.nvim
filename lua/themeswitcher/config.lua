@@ -68,9 +68,4 @@ function M.get()
 	return config
 end
 
-local opts = {
-	some_opt = "blah",
-	another_opt = true,
-}
-
 return M
