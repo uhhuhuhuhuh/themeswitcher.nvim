@@ -245,14 +245,19 @@ function M.setup(opts)
 			M.set_theme(opts.args)
 		end, {
 			nargs = 1,
-			desc = "Select colorscheme from colorschemes table",
+			desc = "Select colorscheme from themes table",
 			complete = function()
 				return M.get_names()
 			end,
 		})
 	end
 	if config.get().Themes_cmd.make == true then
-		vim.api.nvim_create_user_command("Themes", openwindow, {})
+		vim.api.nvim_create_user_command("Themes", openwindow, { desc = "UI to select and pick themes" })
+	end
+	if config.get().make_Debugthemesprint_cmd == true then
+		vim.api.nvim_create_user_command("Debugthemesprint", function()
+			vim.print(vim.inspect(config.get().themes))
+		end, { desc = "Prints the themes table using vim.inspect" })
 	end
 end
 

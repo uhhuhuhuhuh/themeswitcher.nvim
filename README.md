@@ -129,6 +129,8 @@ between colorschemes and their styles.
 ### Things to note
 - I used [themery.nvim](https://github.com/zaldih/themery.nvim) to understand how windows and buffers worked in vim, also my
   plugin is pretty similiar to theirs (not that there are many ways to make a colorscheme manager)
-- To test vibe coding I used deepseek to make a highly general and complete 
+- ~~To test vibe coding I used deepseek to make a highly general and complete 
   [configuration validator](https://github.com/uhhuhuhuhuh/themeswitcher.nvim/blob/main/lua/themeswitcher/validator.lua)
-  , [config guide here](https://github.com/uhhuhuhuhuh/themeswitcher.nvim/blob/main/lua/themeswitcher/config.lua)
+  , [config guide here](https://github.com/uhhuhuhuhuh/themeswitcher.nvim/blob/main/lua/themeswitcher/config.lua)~~
+  I decided it was easier to add features to a config validator which is not overly general however I have took things from
+  the old validator into my new one put in config.lua.
