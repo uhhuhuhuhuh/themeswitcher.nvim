@@ -19,47 +19,48 @@ end
 
 local applytheme = function(save)
 	save = save or true
+	local theme = config.get().themes[config.get().names[currtheme]]
 	local colorscheme
-	if config.get().themes[currtheme] == nil then
+	if theme == nil then
 		error("Bad theme")
 	end
-	if config.get().themes[currtheme].colorscheme == nil then
-		vim.notify("Invalid theme provided: " .. config.get().themes[currtheme], vim.log.levels.ERROR)
+	if theme.colorscheme == nil then
+		vim.notify("Invalid theme provided: " .. theme, vim.log.levels.ERROR)
 		error("Bad theme")
 	else
-		colorscheme = config.get().themes[currtheme].colorscheme
+		colorscheme = theme.colorscheme
 	end
-	if config.get().themes[currtheme].setup ~= nil then
-		config.get().themes[currtheme].setup()
+	if theme.setup ~= nil then
+		theme.setup()
 	elseif config.get().fallback_setup ~= nil then
 		config.get().fallback_setup()
 	end
 	if config.get().always_setup ~= nil then
 		config.get().always_setup()
 	end
-	if config.get().themes[currtheme].bg ~= nil then
-		vim.o.background = config.get().themes[currtheme].bg
+	if theme.bg ~= nil then
+		vim.o.background = theme.bg
 	end
 	if not pcall(vim.cmd.color, colorscheme) then
-		vim.notify("Failed to load colorscheme: " .. config.get().themes[currtheme].name, vim.log.levels.ERROR)
+		vim.notify("Failed to load colorscheme: " .. theme.name, vim.log.levels.ERROR)
 		error("Bad theme")
 		return
 	end
-	if config.get().themes[currtheme].closure ~= nil then
-		config.get().themes[currtheme].closure()
+	if theme.closure ~= nil then
+		theme.closure()
 	elseif config.get().fallback_closure ~= nil then
 		config.get().fallback_closure()
 	end
-	if config.get().themes[currtheme].always_closure ~= nil then
+	if theme.always_closure ~= nil then
 		config.get().always_closure()
 	end
 	if save == true then
-		persistence.write(config.get().themes[currtheme].name)
+		persistence.write(config.get().names[currtheme])
 	end
 end
 local findtheme = function(theme)
-	for i, t in ipairs(config.get().themes) do
-		if t.name == theme then
+	for i, n in ipairs(config.get().names) do
+		if n == theme then
 			return i
 		end
 	end
@@ -149,8 +150,8 @@ end
 
 function M.set_theme(name)
 	local old = currtheme
-	for i, theme in ipairs(config.get().themes) do
-		if name == theme.name then
+	for i, n in ipairs(config.get().names) do
+		if name == n then
 			if appliedtheme ~= nil then
 				updatewindow(i + 1, true)
 				return
@@ -190,11 +191,7 @@ function M.get_themes()
 end
 
 function M.get_names()
-	local names = {}
-	for _, theme in ipairs(config.get().themes) do
-		table.insert(names, theme.name)
-	end
-	return names
+	return config.get().names
 end
 
 function M.next()
