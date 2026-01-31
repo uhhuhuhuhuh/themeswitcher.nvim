@@ -113,8 +113,16 @@ local getcleaned = function(opts)
 	return cleaned
 end
 
+local setnames = function()
+	config.names = {}
+	for i, t in ipairs(config.themes) do
+		config.names[i] = t.name
+	end
+end
+
 function M.set(opts)
 	config = getcleaned(opts)
+	setnames()
 end
 
 function M.get()

@@ -190,11 +190,7 @@ function M.get_themes()
 end
 
 function M.get_names()
-	local names = {}
-	for _, theme in ipairs(config.get().themes) do
-		table.insert(names, theme.name)
-	end
-	return names
+	return config.get().names
 end
 
 function M.next()
@@ -257,6 +253,11 @@ function M.setup(opts)
 	if config.get().make_Debugthemesprint_cmd == true then
 		vim.api.nvim_create_user_command("Debugthemesprint", function()
 			vim.print(vim.inspect(config.get().themes))
+		end, { desc = "Prints the themes table using vim.inspect" })
+	end
+	if config.get().make_Debugnamesprint_cmd == true then
+		vim.api.nvim_create_user_command("Debugnamesprint", function()
+			vim.print(vim.inspect(config.get().names))
 		end, { desc = "Prints the themes table using vim.inspect" })
 	end
 end
