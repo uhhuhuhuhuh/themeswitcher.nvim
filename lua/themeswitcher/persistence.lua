@@ -7,7 +7,7 @@ end
 
 function M.read()
 	if vim.fn.filereadable(filepath) ~= 1 then
-		return
+		return nil
 	end
 	return vim.fn.readfile(filepath)
 end

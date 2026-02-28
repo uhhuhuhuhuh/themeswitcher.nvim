@@ -31,18 +31,13 @@ use {
 ```
 
 ### How to use
-#### Quick Explanation
-Use the "Themes" command to get a nice UI to view and pick your themes, or use the "Color" command to directly set a theme
-based off a name. If you want to, you can bind keys to next() and prev() to be able to quickly change. When setting up the
-plugin use the "themes" table to add all your colorschemes, each "theme" is either a string or table, where you can specify
-several options: colorscheme, the arguement for vim.cmd.color; name, the name of the theme; bg, the value for
-vim.o.background; setup, a function called before coloring; and closure, a function called after coloring.
 #### Example
 ``` lua
 require("themeswitcher").setup({
     themes = {
         "colorscheme1",
         "colorscheme2",
+        -- dark theme
         {
             colorscheme = "colorscheme-which-uses-background",
             bg = "dark", -- no one likes light themed colorschemes
@@ -63,6 +58,15 @@ require("themeswitcher").setup({
                 require("mycolors").setup({ style = "hard" })
             end,
         },
+        -- group of colorschemes
+        {
+            name = "builtin",
+            themes = {
+                -- default's complete path is "builtin/default"
+                "default"
+                "habamax",
+            }
+        }
     },
     make_Color_cmd = true,  -- make a command, "Color" which uses the themes table
     Themes_cmd = {          -- configuration around command, "Themes"
@@ -74,14 +78,15 @@ require("themeswitcher").setup({
     always_setup = nil,     -- setup function called for every theme, called after setup
     fallback_closure = nil, -- fallback closure if there is none provided for a theme
     always_closure = nil,   -- closure function called for every theme (called after coloring)
+    join_symbol = "/",      -- the join symbol used when building a path when using theme groups
 })
 
 vim.keymap.set("n", "<C-L>", function()
     require("themeswitcher").next() -- Selects next theme
-end, {desc = "Next theme"})
+end, { desc = "Next theme" })
 vim.keymap.set("n", "<C-H>", function()
     require("themeswitcher").prev() -- Selects prev theme
-end, {desc = "Prev theme"})
+end, { desc = "Prev theme" })
 ```
 #### Clarification on the theme format
 ##### String Format
@@ -109,17 +114,39 @@ end, {desc = "Prev theme"})
     end,
 }
 ```
+#### Theme Groups
+``` lua
+{
+    name = "mygroup" -- REQUIRED used for the group name
+    themes = {       -- REQUIRED the themes the group contains
+        "my-really-cool-colors",
+        {
+            colorscheme = "my-great-table-colors",
+            bg = "dark",
+        },
+        {
+            name = "my-sub-group",
+            themes = {
+                "my-other-colors",
+            },
+        },
+    },
+}
+```
 #### API
 ``` lua
 local ts = require("themeswitcher")
 
-ts.set_theme("mythemename") -- sets a theme based off a name
+ts.set_theme("mythemename") -- sets a theme based off a path
 ts.set_theme_idx(1)         -- sets a theme based off an idx
 ts.get_themes()             -- returns the themes table
-ts.get_names()              -- returns the names of the items in the themes table
+ts.get_paths()              -- returns the paths of the themes and theme groups
+ts.get_theme_paths()        -- returns the paths of only the themes
+ts.open_window()            -- opens the themeswitcher.nvim UI
+ts.close_window()           -- closes the themeswitcher.nvim UI
 ts.next()                   -- applies next colorscheme
 ts.prev()                   -- applies previous colorscheme
-ts.setup({})                -- setups this plugin
+ts.setup({})                -- sets up this plugin
 ```
 ### Why?
 I made a copy of my neovim config which I used to test plugins and colorschemes so I needed something to easily switch

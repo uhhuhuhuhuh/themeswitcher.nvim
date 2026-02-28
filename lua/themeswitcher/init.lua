@@ -1,1 +1,1 @@
-return require("themeswitcher.themeswitcher")
+return require("themeswitcher.core")

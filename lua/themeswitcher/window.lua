@@ -5,7 +5,7 @@ local M = {}
 local buf
 local win
 
-local gettransform = function()
+local function gettransform()
 	local width = vim.api.nvim_get_option("columns")
 	local height = vim.api.nvim_get_option("lines")
 	local bufwidth = math.ceil(width * 0.4)
