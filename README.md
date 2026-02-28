@@ -114,7 +114,7 @@ end, { desc = "Prev theme" })
     end,
 }
 ```
-#### Theme Groups
+##### Theme Groups
 ``` lua
 {
     name = "mygroup" -- REQUIRED used for the group name
