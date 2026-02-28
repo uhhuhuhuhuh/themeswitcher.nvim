@@ -67,7 +67,7 @@ local function cleanctntofname(name, join_symbol, default)
     return name
 end
 
-local function setcleanedthemeandname(themes, paths, themepaths, i, join_symbol, path)
+local function setcleanedthemeandname(themes, paths, themepaths, i, join_symbol, path, nameprefix)
     local new = themes[i]
     new["colorscheme"] = cleansimpleopt("colorscheme", new, { "string" }, {}, "default", path, true)
     new["name"] = cleansimpleopt("name", new, { "string" }, {}, new.colorscheme, path)
@@ -75,8 +75,8 @@ local function setcleanedthemeandname(themes, paths, themepaths, i, join_symbol,
     new["bg"] = cleansimpleopt("bg", new, { "string" }, { "dark", "light" }, nil, path)
     new["setup"] = cleansimpleopt("setup", new, { "function" }, {}, nil, path)
     new["closure"] = cleansimpleopt("closure", new, { "function" }, {}, nil, path)
-    table.insert(paths, { path = new.name, isgroup = false })
-    table.insert(themepaths, new.name)
+    table.insert(paths, { path = nameprefix .. new.name, isgroup = false })
+    table.insert(themepaths, nameprefix .. new.name)
     themes[new.name] = new
     themes[new.name].isgroup = false
     themes[new.name].name = nil
@@ -115,7 +115,7 @@ local function setcleanedthemesandnames(themes, paths, themepaths, groups, join_
             goto continue
         end
         if themes[i].themes == nil then
-            setcleanedthemeandname(themes, paths, themepaths, i, join_symbol, path .. "themes")
+            setcleanedthemeandname(themes, paths, themepaths, i, join_symbol, path .. "themes", nameprefix)
             goto continue
         end
 

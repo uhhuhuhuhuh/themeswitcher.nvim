@@ -29,9 +29,6 @@ local function getfrompath(path)
 	local lastseg = ""
 	for i, segment in ipairs(segments) do
 		lastseg = segment
-		if type(current) ~= "table" then
-			return nil
-		end
 		current = current[segment]
 		if not current then
 			return nil

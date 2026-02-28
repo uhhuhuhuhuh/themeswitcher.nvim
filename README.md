@@ -64,12 +64,13 @@ require("themeswitcher").setup({
         make = true,            -- make the command
         live_preview = true,    -- preview the theme under the cursor
     },
-    fallback = "habamax",   -- fallback theme, same syntax as themes' items'
-    fallback_setup = nil,   -- fallback setup if there is none provided for a theme
-    always_setup = nil,     -- setup function called for every theme, called after setup
-    fallback_closure = nil, -- fallback closure if there is none provided for a theme
-    always_closure = nil,   -- closure function called for every theme (called after coloring)
-    join_symbol = "/",      -- the join symbol used when building a path when using theme groups
+    fallback = "habamax",          -- fallback theme, same syntax as themes' items'
+    fallback_setup = nil,          -- fallback setup if there is none provided for a theme
+    always_setup = nil,            -- setup function called for every theme, called after setup
+    fallback_closure = nil,        -- fallback closure if there is none provided for a theme
+    always_closure = nil,          -- closure function called for every theme (called after coloring)
+    join_symbol = "/",             -- the join symbol used when building a path when using theme groups
+    groups_open_by_default = false -- if true then when opening the UI groups will be open by default
 })
 
 vim.keymap.set("n", "<C-L>", function()
