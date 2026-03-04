@@ -41,7 +41,7 @@ function M.open(movedfunc, onclosefunc)
 		callback = movedfunc,
 	})
 	groupid = vim.api.nvim_create_augroup("themesclose", { clear = true })
-	vim.api.nvim_create_autocmd({ "BufDelete" }, {
+	vim.api.nvim_create_autocmd({ "BufWipeout" }, {
 		group = groupid,
 		buffer = buf,
 		callback = onclosefunc,
