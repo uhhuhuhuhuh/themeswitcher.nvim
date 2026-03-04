@@ -1,6 +1,8 @@
 <h1 align="center">themeswitcher.nvim </h1>
 <p align="center"><sup>A colorscheme manager and switcher for Neovim (also my first and probably last Neovim plugin)</sup></p>
 
+<video src=".github/images/demo.mp4" width="1920" height="1080" controls></video>
+
 ### Install
 - For [lazy.nvim](https://github.com/folke/lazy.nvim)
 ``` lua
