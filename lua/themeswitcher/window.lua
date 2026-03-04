@@ -22,7 +22,7 @@ function M.close()
 	vim.api.nvim_win_close(win, true)
 end
 
-function M.open(movedfunc)
+function M.open(movedfunc, onclosefunc)
 	buf = vim.api.nvim_create_buf(false, true)
 	vim.api.nvim_set_option_value("filetype", "themes", { buf = buf })
 	vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = buf })
@@ -35,10 +35,16 @@ function M.open(movedfunc)
 		once = true,
 	})
 	groupid = vim.api.nvim_create_augroup("themesmoved", { clear = true })
-	vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMoved" }, {
+	vim.api.nvim_create_autocmd({ "CursorMoved" }, {
 		group = groupid,
 		buffer = buf,
 		callback = movedfunc,
+	})
+	groupid = vim.api.nvim_create_augroup("themesclose", { clear = true })
+	vim.api.nvim_create_autocmd({ "BufDelete" }, {
+		group = groupid,
+		buffer = buf,
+		callback = onclosefunc,
 	})
 
 	local transform = gettransform()

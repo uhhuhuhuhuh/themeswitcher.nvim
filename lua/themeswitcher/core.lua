@@ -221,15 +221,21 @@ end
 local function updatewindowcursor()
 	updatewindow(vim.fn.line("."))
 end
-function M.close_window()
-	window.close()
+local function onclose()
 	currtheme = uistate.appliedtheme
 	applytheme()
 	uistate.appliedtheme = nil
 	uistate.postopathidx = nil
 end
 
+function M.close_window()
+	window.close()
+end
+
 local function onenter()
+	if paths[uistate.postopathidx] == nil then
+		return
+	end
 	if paths[uistate.postopathidx].isgroup == false then
 		uistate.appliedtheme = currtheme
 	else
@@ -238,7 +244,7 @@ local function onenter()
 	updatewindow(nil, nil, true)
 end
 function M.open_window()
-	window.open(updatewindowcursor)
+	window.open(updatewindowcursor, onclose)
 	uistate.appliedtheme = currtheme
 	if uistate.cursorpos == nil then
 		updatewindow(nil, true)
@@ -319,6 +325,11 @@ function M.next()
 		return
 	end
 
+	if uistate.appliedtheme ~= nil then
+		updatewindow(uistate.cursorpos + 1, true)
+		return
+	end
+
 	local new = currtheme
 	if new == #paths then
 		new = 1
@@ -333,10 +344,6 @@ function M.next()
 		end
 	end
 
-	if uistate.appliedtheme ~= nil then
-		updatewindow(new + 1, true)
-		return
-	end
 	local old = currtheme
 	currtheme = new
 	if not pcall(applytheme) then
@@ -348,6 +355,11 @@ end
 
 function M.prev()
 	if #paths == 0 then
+		return
+	end
+
+	if uistate.appliedtheme ~= nil then
+		updatewindow(uistate.cursorpos - 1, true)
 		return
 	end
 
@@ -365,10 +377,6 @@ function M.prev()
 		end
 	end
 
-	if uistate.appliedtheme ~= nil then
-		updatewindow(new + 1, true)
-		return
-	end
 	local old = currtheme
 	currtheme = new
 	if not pcall(applytheme) then
