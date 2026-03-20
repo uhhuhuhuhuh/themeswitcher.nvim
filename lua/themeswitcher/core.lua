@@ -38,7 +38,7 @@ local function getfrompath(path)
 		end
 	end
 
-	return { theme = current, name = lastseg }
+	return { theme = current, name = lastseg, split = segments }
 end
 
 local function notify()
@@ -116,6 +116,7 @@ local function loadpersist()
 		end
 	end
 end
+
 local function updatewindow(position, updatecursor, skippreview)
 	updatecursor = updatecursor == nil and false or updatecursor
 	skippreview = skippreview == nil and false or skippreview
@@ -188,6 +189,10 @@ local function updatewindow(position, updatecursor, skippreview)
 	vim.api.nvim_buf_set_lines(window.buf(), 1, -1, false, names)
 	if position == nil then
 		position = vim.fn.line(".")
+	elseif position < 1 then
+		position = 1
+	elseif position > #names + 1 then
+		position = #names + 1
 	end
 	if updatecursor == true then
 		vim.api.nvim_win_set_cursor(window.win(), { position, 0 })
@@ -220,6 +225,41 @@ local function updatewindow(position, updatecursor, skippreview)
 end
 local function updatewindowcursor()
 	updatewindow(vim.fn.line("."))
+end
+local function applyonui(idx)
+	local split = getfrompath(paths[idx].path).split
+	local currsplit = 1
+	local offset = 0
+	local jump = 0
+	local prefix = ""
+	for i, path in ipairs(paths) do
+		if jump > 0 then
+			jump = jump - 1
+			goto continue
+		end
+		if path.isgroup == true then
+			if groups[i] == false then
+				if path.path == prefix .. split[currsplit] then
+					prefix = path.path .. config.get().join_symbol
+					currsplit = currsplit + 1
+					groups[i] = true
+				else
+					offset = offset + path.size
+					jump = path.size
+				end
+			elseif path.path == prefix .. split[currsplit] then
+				prefix = path.path .. config.get().join_symbol
+				currsplit = currsplit + 1
+			end
+		end
+
+		if i >= idx then
+			break
+		end
+		::continue::
+	end
+
+	updatewindow(1 + idx - offset, true)
 end
 local function onclose()
 	currtheme = uistate.appliedtheme
@@ -282,6 +322,9 @@ function M.set_theme(path)
 		vim.notify("Failed to find colorscheme, " .. path, vim.log.levels.ERROR)
 		return
 	end
+	if uistate.appliedtheme ~= nil then
+		applyonui(currtheme)
+	end
 
 	if not pcall(applytheme) then
 		currtheme = old
@@ -296,7 +339,7 @@ function M.set_theme_idx(idx)
 	end
 
 	if uistate.appliedtheme ~= nil then
-		updatewindow(idx + 1, true)
+		applyonui(idx)
 		return
 	end
 	local old = currtheme
@@ -325,16 +368,26 @@ function M.next()
 		return
 	end
 
-	if uistate.appliedtheme ~= nil then
-		updatewindow(uistate.cursorpos + 1, true)
-		return
-	end
-
 	local new = currtheme
 	if new == #paths then
 		new = 1
 	else
 		new = new + 1
+	end
+	while paths[new].isgroup == true do
+		if new == #paths then
+			new = 1
+		else
+			new = new + 1
+		end
+	end
+	if uistate.appliedtheme ~= nil then
+		if config.get().smart_next_prev_in_UI == true then
+			applyonui(new)
+		else
+			updatewindow(uistate.cursorpos + 1, true)
+		end
+		return
 	end
 	while paths[new].isgroup == true do
 		if new == #paths then
@@ -358,16 +411,26 @@ function M.prev()
 		return
 	end
 
-	if uistate.appliedtheme ~= nil then
-		updatewindow(uistate.cursorpos - 1, true)
-		return
-	end
-
 	local new = currtheme
 	if new == 1 then
 		new = #paths
 	else
 		new = new - 1
+	end
+	while paths[new].isgroup == true do
+		if new == 1 then
+			new = #paths
+		else
+			new = new - 1
+		end
+	end
+	if uistate.appliedtheme ~= nil then
+		if config.get().smart_next_prev_in_UI == true then
+			applyonui(new)
+		else
+			updatewindow(uistate.cursorpos - 1, true)
+		end
+		return
 	end
 	while paths[new].isgroup == true do
 		if new == 1 then

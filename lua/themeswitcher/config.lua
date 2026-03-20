@@ -173,6 +173,13 @@ local function clean(opts, paths, themepaths, groups)
     cleaned["fallback_closer"] = cleansimpleopt("fallback_closer", opts, { "function" }, {}, nil, path)
     cleaned["always_closure"] = cleansimpleopt("always_closure", opts, { "function" }, {}, nil, path)
     cleaned["make_Color_cmd"] = cleansimpleopt("make_Color_cmd", opts, { "boolean" }, {}, true, path)
+    cleaned["smart_next_prev_in_UI"] = cleansimpleopt("smart_next_prev_in_UI", opts, { "boolean" }, {}, true, path)
+    cleaned["Themes_cmd"] = cleansimpleopt("Themes_cmd", opts, { "table" }, {}, {
+        make = true,
+        live_preview = true,
+    }, path)
+    cleaned["Themes_cmd"] = getcleanedThemes_cmd(cleaned["Themes_cmd"], "Themes_cmd")
+
     cleaned["DEBUG"] = cleansimpleopt(
         "DEBUG",
         opts,
@@ -181,11 +188,6 @@ local function clean(opts, paths, themepaths, groups)
         false,
         path
     )
-    cleaned["Themes_cmd"] = cleansimpleopt("Themes_cmd", opts, { "table" }, {}, {
-        make = true,
-        live_preview = true,
-    }, path)
-    cleaned["Themes_cmd"] = getcleanedThemes_cmd(cleaned["Themes_cmd"], "Themes_cmd")
 
     return cleaned
 end
