@@ -200,7 +200,6 @@ local function updatewindow(position, updatecursor, skippreview)
 	uistate.cursorpos = position
 	vim.api.nvim_set_option_value("modifiable", false, { buf = window.buf() })
 
-	-- is a theme not a group name
 	uistate.postopathidx = map[position - 1]
 	if config.get().Themes_cmd.live_preview == false or skippreview == true then
 		return
@@ -465,68 +464,70 @@ function M.setup(opts)
 		})
 	end
 
-	if config.get().DEBUG == true then
-		local getfuncs = {
-			["themes"] = function()
-				return config.get().themes
-			end,
-			["paths"] = function()
-				return paths
-			end,
-			["themepaths"] = function()
-				return themepaths
-			end,
-			["groups"] = function()
-				return groups
-			end,
-			["uistate.appliedtheme"] = function()
-				if uistate.appliedtheme == nil then
-					return nil
-				end
-				return {
-					path = (paths[uistate.appliedtheme] == nil and "nil" or paths[uistate.appliedtheme]),
-					idx = uistate.appliedtheme,
-				}
-			end,
-			["currtheme"] = function()
-				if currtheme == nil then
-					return nil
-				end
-				return { path = (paths[currtheme] == nil and "nil" or paths[currtheme]), idx = currtheme }
-			end,
-			["uistate.postopathidx"] = function()
-				if currtheme == nil then
-					return nil
-				end
-				return {
-					path = (paths[uistate.postopathidx] == nil and "nil" or paths[uistate.postopathidx]),
-					idx = currtheme,
-				}
-			end,
-		}
-		vim.api.nvim_create_user_command("DEBUGthemeswitcher", function(opts)
-			local get = getfuncs[opts.args]
-			if get == nil then
-				vim.notify("DEBUGthemeswitcher, Invalid command: " .. opts.args, vim.log.levels.ERROR)
-				return
-			end
-			print(vim.inspect(get()))
-		end, {
-			nargs = 1,
-			desc = "themeswitcher.nvim debug printer",
-			complete = function()
-				local res = {}
-				for key, _ in pairs(getfuncs) do
-					table.insert(res, key)
-				end
-				return res
-			end,
-		})
-	end
-
 	if config.get().Themes_cmd.make == true then
 		vim.api.nvim_create_user_command("Themes", M.open_window, { desc = "UI to select and pick themes" })
 	end
+
+	if config.get().DEBUG == false then
+		return
+	end
+
+	local getfuncs = {
+		["themes"] = function()
+			return config.get().themes
+		end,
+		["paths"] = function()
+			return paths
+		end,
+		["themepaths"] = function()
+			return themepaths
+		end,
+		["groups"] = function()
+			return groups
+		end,
+		["uistate.appliedtheme"] = function()
+			if uistate.appliedtheme == nil then
+				return nil
+			end
+			return {
+				path = (paths[uistate.appliedtheme] == nil and "nil" or paths[uistate.appliedtheme]),
+				idx = uistate.appliedtheme,
+			}
+		end,
+		["currtheme"] = function()
+			if currtheme == nil then
+				return nil
+			end
+			return { path = (paths[currtheme] == nil and "nil" or paths[currtheme]), idx = currtheme }
+		end,
+		["uistate.postopathidx"] = function()
+			if currtheme == nil then
+				return nil
+			end
+			return {
+				path = (paths[uistate.postopathidx] == nil and "nil" or paths[uistate.postopathidx]),
+				idx = currtheme,
+			}
+		end,
+	}
+	vim.api.nvim_create_user_command("DEBUGthemeswitcher", function(opts)
+		local get = getfuncs[opts.args]
+		if get == nil then
+			vim.notify("DEBUGthemeswitcher, Invalid command: " .. opts.args, vim.log.levels.ERROR)
+			return
+		end
+		print(vim.inspect(get()))
+	end, {
+		nargs = 1,
+		desc = "themeswitcher.nvim debug printer",
+		complete = function()
+			local res = {}
+			for key, _ in pairs(getfuncs) do
+				table.insert(res, key)
+			end
+			return res
+		end,
+	})
 end
 
 return M
