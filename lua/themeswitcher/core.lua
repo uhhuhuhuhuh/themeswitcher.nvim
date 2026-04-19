@@ -89,33 +89,6 @@ local function applytheme(save)
 		persistence.write(path)
 	end
 end
-local function loadpersist()
-	local persisttheme = persistence.read()
-	if persisttheme == nil or #persisttheme == 0 then
-		return
-	end
-	currtheme = 0
-	for i, x in ipairs(paths) do
-		if x.path == persisttheme[1] then
-			currtheme = i
-			break
-		end
-	end
-
-	-- either apply theme or fallback
-	if currtheme == 0 or not pcall(applytheme) then
-		if currtheme == 0 then
-			vim.notify("themeswitcher.nvim: can not find theme located in persist file", vim.log.levels.ERROR)
-			-- no need to notify for apply theme failure because it already does notify errors
-		end
-		if config.get().fallback == nil then
-			return
-		end
-		if not pcall(vim.cmd.colorscheme, config.get().fallback.colorscheme) then
-			vim.notify("Failed to load fallback, " .. config.get().fallback.name, vim.log.levels.ERROR)
-		end
-	end
-end
 
 local function updatewindow(position, updatecursor, skippreview)
 	updatecursor = updatecursor == nil and false or updatecursor
@@ -267,11 +240,39 @@ local function onclose()
 	uistate.postopathidx = nil
 end
 
+function M.load_persist()
+	local persisttheme = persistence.read()
+	if persisttheme == nil or #persisttheme == 0 then
+		return
+	end
+	currtheme = 0
+	for i, x in ipairs(paths) do
+		if x.path == persisttheme[1] then
+			currtheme = i
+			break
+		end
+	end
+
+	-- either apply theme or fallback
+	if currtheme == 0 or not pcall(applytheme) then
+		if currtheme == 0 then
+			vim.notify("themeswitcher.nvim: can not find theme located in persist file", vim.log.levels.ERROR)
+			-- no need to notify for apply theme failure because it already does notify errors
+		end
+		if config.get().fallback == nil then
+			return
+		end
+		if not pcall(vim.cmd.colorscheme, config.get().fallback.colorscheme) then
+			vim.notify("Failed to load fallback, " .. config.get().fallback.name, vim.log.levels.ERROR)
+		end
+	end
+end
+
 function M.close_window()
 	window.close()
 end
 
-local function onenter()
+local function onenterkey()
 	if paths[uistate.postopathidx] == nil then
 		return
 	end
@@ -293,7 +294,7 @@ function M.open_window()
 	local mappings = {
 		q = M.close_window,
 		["<Esc>"] = M.close_window,
-		["<Cr>"] = onenter,
+		["<Cr>"] = onenterkey,
 	}
 
 	for k, v in pairs(mappings) do
@@ -448,30 +449,31 @@ function M.prev()
 	notify()
 end
 
-function M.setup(opts)
+function M.set_config(opts)
 	config.set(opts, paths, themepaths, groups)
-	loadpersist()
+end
 
-	if config.get().make_Color_cmd == true then
-		vim.api.nvim_create_user_command("Color", function(opts)
-			M.set_theme(opts.args)
-		end, {
-			nargs = 1,
-			desc = "Select colorscheme from themes table",
-			complete = function()
-				return themepaths
-			end,
-		})
-	end
+function M.get_config()
+	return config.get()
+end
 
-	if config.get().Themes_cmd.make == true then
-		vim.api.nvim_create_user_command("Themes", M.open_window, { desc = "UI to select and pick themes" })
-	end
+function M.create_Color_cmd()
+	vim.api.nvim_create_user_command("Color", function(opts)
+		M.set_theme(opts.args)
+	end, {
+		nargs = 1,
+		desc = "Select colorscheme from themes table",
+		complete = function()
+			return themepaths
+		end,
+	})
+end
 
-	if config.get().DEBUG == false then
-		return
-	end
+function M.create_Themes_cmd()
+	vim.api.nvim_create_user_command("Themes", M.open_window, { desc = "UI to select and pick themes" })
+end
 
+function M.create_DEBUG_cmd()
 	local getfuncs = {
 		["themes"] = function()
 			return config.get().themes

@@ -92,9 +92,9 @@ local setcleanedThemes_cmd = function(themescmd, path)
     cleansimpleopt(themescmd, "live_preview", themescmd, { "boolean" }, {}, true, path)
 end
 
--- need to set names here so that the order of the names is preserved
+-- need to set paths here so that the order of the names is preserved
 -- also returns the size of the themes
-local function setcleanedthemesandnames(themes, paths, themepaths, groups, join_symbol, gobd, opts, path, nameprefix)
+local function setcleanedthemesandpaths(themes, paths, themepaths, groups, join_symbol, gobd, opts, path, nameprefix)
     nameprefix = nameprefix or ""
     local count = 0
     for i = 1, #themes do
@@ -142,7 +142,7 @@ local function setcleanedthemesandnames(themes, paths, themepaths, groups, join_
         groups[#paths] = gobd
 
         local idx = #paths
-        local size = setcleanedthemesandnames(theme.themes, paths, themepaths, groups, join_symbol, gobd, opts,
+        local size = setcleanedthemesandpaths(theme.themes, paths, themepaths, groups, join_symbol, gobd, opts,
             "themes[" .. tostring(i) .. "].",
             nameprefix .. theme.name .. join_symbol)
         paths[idx].size = size
@@ -163,7 +163,7 @@ local function clean(config, opts, paths, themepaths, groups)
     cleansimpleopt(config, "join_symbol", opts, { "string" }, {}, "/", path)
     cleansimpleopt(config, "groups_open_by_default", opts, { "boolean" }, {}, false, path)
     cleansimpleopt(config, "themes", opts, { "table" }, {}, {}, path)
-    setcleanedthemesandnames(config.themes, paths, themepaths, groups, config["join_symbol"],
+    setcleanedthemesandpaths(config.themes, paths, themepaths, groups, config["join_symbol"],
         config["groups_open_by_default"],
         opts, path)
     cleansimpleopt(config, "fallback", opts, { "table", "string" }, {}, "habamax", path)
